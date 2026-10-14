@@ -91,7 +91,7 @@ const POS = words(`love loved lovely loving like liked good great awesome amazin
   دوستت عاشقتم عالی خوب خوبه خوبم قشنگ قشنگه زیبا ممنون مرسی خوشحال خوشحالم باحال بامزه عزیزم عزیز جیگر عشقم عشق
   دلم آفرین مبارک هورا خوشگل خوشگله نازی ناز محشر فوقالعاده خفن ایول دمت لذت بغل بوس ماچ آروم موفق خندیدم
   merci mamnoon azizam eshgham eshgh ali khoobe khubam ghashang khoshhal bahal ayval afarin mobarak naz khoshgel`);
-const NEG = words(`hate hated bad sad angry mad upset tired sick hurt pain cry crying cried sorry worried worry worse
+const NEG = words(`hate hated bad sad angry mad upset tired sick hurt pain cry crying cried worried worry worse
   worst awful terrible horrible annoying annoyed boring bored stupid ugh fuck shit damn hell lonely alone afraid
   scared fear stress stressed stressful depressed anxious anxiety broke fail failed failure lost lose miserable
   disappointed disgusting gross wrong sucks hard difficult problem problems issue fight unfair jealous kill dead
@@ -141,3 +141,24 @@ export const FINGLISH = new Set(words(`salam chetori khubi khoobi merci mersi ma
   midoonam midunam mikham mikhay kheili khayli khili khob khub khoob dige chera chi kojai koja hala alan basheh bashe
   azizam joonam joon jan eshgham delam barat mibinamet bebakhshid berim biya miay miam farda emshab dorost ghorbunet
   ghorboonet bia bego begoo cheshm nemiam nemiay haminjoori hamintori bezar ham ke ro rooz shab sobh`));
+
+// Fight detection. Each hit is weak evidence on its own; a fight needs several kinds at once.
+export const FIGHT_RE = new RegExp(
+  [
+    String.raw`\byou\s+(?:always|never)\b`, String.raw`\bi'?m\s+done\b`, String.raw`\bleave\s+me\s+alone\b`,
+    String.raw`\bwhatever\b`, String.raw`\bseriously\b`, String.raw`\bi\s+don'?t\s+care\b`, String.raw`\bforget\s+it\b`,
+    String.raw`\bwhat'?s\s+your\s+problem\b`, String.raw`\bstop\s+it\b`, String.raw`\bshut\s+up\b`, String.raw`\bfight(?:ing)?\b`,
+    String.raw`\bargu(?:e|ing|ment)\b`, String.raw`\bangry\b`, String.raw`\bmad\s+at\b`, String.raw`\bupset\b`, String.raw`\bhurt\s+me\b`,
+    String.raw`\bdisappointed\b`, String.raw`\bunbelievable\b`, String.raw`\bdon'?t\s+talk\s+to\s+me\b`, String.raw`\bwhy\s+would\s+you\b`,
+    String.raw`\bnot\s+fair\b`, String.raw`\bi\s+hate\b`, String.raw`\bannoy(?:ed|ing)\b`, String.raw`\bignor(?:e|ed|ing)\s+me\b`,
+    String.raw`\bwhy\s+are\s+you\s+like\s+this\b`,
+    "ولم\\s*کن", "ولش\\s*کن", "ناراحتم", "دعوا", "همیشه\\s*همین", "هیچوقت", "اعصاب", "حوصله\\s*(?:ندارم|تو\\s*ندارم)",
+    "تمومش\\s*کن", "خسته\\s*شدم", "مسخره", "محل\\s*نمیدی", "جواب\\s*نمیدی", "چرا\\s*اینجوری", "حق\\s*نداری", "برو\\s*بابا",
+    "بسه\\s*دیگه", "دیگه\\s*بسه", "قهر", "دلخور", "دروغ\\s*گفتی",
+    String.raw`\bvel(?:am)?\s+kon\b`, String.raw`\bbikhial\b`, String.raw`\bnarahatam\b`, String.raw`\basabam\b`,
+    String.raw`\bhoo?sele\s+nadaram\b`, String.raw`\bghahr\b`, String.raw`\bbase\s+dige\b`, String.raw`\bdige\s+base\b`,
+  ].join("|"),
+  "iu",
+);
+// Cold one-word replies (plain "ok" is too common to count).
+export const CURT_RE = /^(?:ok\.|okay\.|k\.?|kk\.?|fine\.?|whatever\.?|sure\.|nvm|nothing\.?|ok then\.?|هرچی\.?|باشه\.|اوکی\.|هیچی\.?|بیخیال\.?|عالی\.)$/iu;

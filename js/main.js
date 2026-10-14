@@ -3,13 +3,15 @@ import { playStory } from "./story.js";
 import { downloadCard } from "./card.js";
 import { downloadStorySheet } from "./snapshot.js";
 import { esc, num, dayLabel } from "./format.js";
+import { renderRelationship, defaultRelState } from "./relationship.js";
 
 const $ = (s) => document.querySelector(s);
 const views = ["landing", "loading", "picker", "results"];
 let result = null;
+let relState = defaultRelState();
 const narrowMQ = matchMedia("(max-width: 759px)");
 narrowMQ.addEventListener("change", () => {
-  if (result) $("#dashboard").innerHTML = renderDashboard(result, { narrow: narrowMQ.matches });
+  if (result) $("#dashboard").innerHTML = renderDashboard(result, { narrow: narrowMQ.matches, rel: relState });
 });
 let worker = null;
 
@@ -96,7 +98,8 @@ function showResult(r) {
   const you = P.find((p) => p.isYou);
   $("#result-title").textContent = P.length !== 2 ? r.chat.name : you ? `You & ${P.find((p) => p !== you).name}` : `${P[0].name} & ${P[1].name}`;
   $("#result-sub").textContent = `${dayLabel(r.totals.firstDay)} – ${dayLabel(r.totals.lastDay)} · ${num(r.totals.messages)} messages`;
-  $("#dashboard").innerHTML = renderDashboard(r, { narrow: narrowMQ.matches });
+  relState = loadRelState(r);
+  $("#dashboard").innerHTML = renderDashboard(r, { narrow: narrowMQ.matches, rel: relState });
   show("results");
   playStory(r, { onAction });
 }
@@ -175,6 +178,58 @@ document.addEventListener("click", (e) => {
     result = null;
     show("landing");
   } else onAction(a.dataset.action);
+});
+
+// ---------- "Fights & what changed" controls ----------
+
+// Sensitivity and "not a fight" choices are remembered per chat in this browser only.
+const relKey = (r) => `cw-rel:${r.chat.name}:${r.totals.start}`;
+function loadRelState(r) {
+  const st = defaultRelState();
+  try {
+    const saved = JSON.parse(localStorage.getItem(relKey(r)) || "null");
+    if (saved) {
+      st.sensitivity = saved.sensitivity || st.sensitivity;
+      st.dismissed = new Set(saved.dismissed || []);
+    }
+  } catch {}
+  return st;
+}
+function saveRelState() {
+  try {
+    localStorage.setItem(relKey(result), JSON.stringify({ sensitivity: relState.sensitivity, dismissed: [...relState.dismissed] }));
+  } catch {}
+}
+function renderRel() {
+  const grid = $("#relationship .grid");
+  if (grid) grid.innerHTML = renderRelationship(result, relState, { narrow: narrowMQ.matches });
+}
+
+$("#dashboard").addEventListener("click", (e) => {
+  const dismiss = e.target.closest("[data-rel-dismiss]");
+  const action = e.target.closest("[data-rel]")?.dataset.rel;
+  if (dismiss) {
+    relState.dismissed.add(+dismiss.dataset.relDismiss);
+    saveRelState();
+  } else if (action === "reveal" || action === "hide") {
+    relState.revealed = action === "reveal";
+    if (!relState.revealed) $("#relationship").scrollIntoView();
+  } else if (action === "restore") {
+    relState.dismissed.clear();
+    saveRelState();
+  } else if (action === "end-reset") {
+    relState.end = null;
+  } else return;
+  renderRel();
+});
+$("#dashboard").addEventListener("change", (e) => {
+  if (e.target.id === "rel-sens") {
+    relState.sensitivity = e.target.value;
+    saveRelState();
+  } else if (e.target.id === "rel-end") {
+    relState.end = e.target.value || null;
+  } else return;
+  renderRel();
 });
 
 // Shared tooltip for every [data-tip] element.

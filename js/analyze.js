@@ -1,4 +1,5 @@
 // Computes every stat from a normalized chat (see parser.js). Pure function, runs in a worker.
+import { createTensionTracker } from "./tension.js";
 import { STOPWORDS, LAUGH_RE, COUNTERS, SENTIMENT, SENTIMENT_EMOJI, NEGATORS, TOPICS, FINGLISH } from "./lexicons.js";
 
 const HOUR = 3600e3;
@@ -192,6 +193,7 @@ export function analyze(chat, { today = new Date() } = {}) {
   let pendingQ = [];
   const sessions = [];
   let session = null;
+  const tension = createTensionTracker(P, idx, ref);
   let longestSilence = null;
 
   const flushBurst = (prevMsg) => {
@@ -253,6 +255,7 @@ export function analyze(chat, { today = new Date() } = {}) {
     // text
     const raw = m.text || "";
     let isQuestion = false, laughed = false, emo = [], toks = [];
+    const facts = { text: false, raw, toks, laughed: false, affection: false, sorry: false, pos: 0, neg: 0, posEmoji: false, topics: [] };
     if (raw && !m.forwarded) {
       const norm = normalizeText(raw);
       toks = tokenize(norm);
@@ -309,6 +312,8 @@ export function analyze(chat, { today = new Date() } = {}) {
 
       COUNTERS.forEach((c, ci) => {
         if (c.re.test(raw)) {
+          if (c.key === "love" || c.key === "miss") facts.affection = true;
+          if (c.key === "sorry") facts.sorry = true;
           counterHits[ci][s]++;
           if (!counterFirst[ci]) counterFirst[ci] = ref(m, idx);
         }
@@ -324,7 +329,10 @@ export function analyze(chat, { today = new Date() } = {}) {
       }
       for (const e of emo) {
         const v = SENTIMENT_EMOJI.get(e.replace(/\uFE0F/g, ""));
-        if (v > 0) pos++;
+        if (v > 0) {
+          pos++;
+          facts.posEmoji = true;
+        }
         else if (v < 0) neg++;
       }
       if (pos || neg) {
@@ -340,12 +348,15 @@ export function analyze(chat, { today = new Date() } = {}) {
         sd[1] += neg;
       }
 
+      Object.assign(facts, { text: true, toks, laughed, pos, neg });
+
       // topics
       if (toks.length || emo.length) {
         TOPICS.forEach((_, ti) => {
           const set = topicSets[ti];
           if (toks.some((t) => set.has(t) || (t.length > 3 && t.endsWith("s") && set.has(t.slice(0, -1)))) || emo.some((e) => set.has(e))) {
             topicCounts[ti][s]++;
+            facts.topics.push(ti);
           }
         });
       }
@@ -355,9 +366,12 @@ export function analyze(chat, { today = new Date() } = {}) {
       if (lang) (langCounts.get(lang) || langCounts.set(lang, per()).get(lang))[s]++;
     }
 
+    tension.message(m, s, facts);
+
     // ---------- dynamics ----------
     const gap = prev ? m.t - prev.t : Infinity;
     if (gap >= SESSION_GAP) {
+      tension.sessionStart(m, s, gap, prev);
       if (session) sessions.push(session);
       starters[s]++;
       if (prev) enders[idx(prev)]++;
@@ -372,13 +386,17 @@ export function analyze(chat, { today = new Date() } = {}) {
 
     if (prev && idx(prev) === s) {
       burstLen++;
-      if (gap >= DOUBLE_TEXT_GAP) doubleTexts[s]++;
+      if (gap >= DOUBLE_TEXT_GAP) {
+        doubleTexts[s]++;
+        tension.doubleText(m, s);
+      }
     } else {
       if (prev) flushBurst(prev);
       burstLen = 1;
       burstStart = m;
       if (prev) {
         replyTimes[s].push(gap);
+        if (gap < SESSION_GAP) tension.reply(m, s, gap);
         replyBuckets[s][BUCKETS.findIndex((b) => gap < b)]++;
         if (!slowest[s] || gap > slowest[s].gap) slowest[s] = { gap, prompt: ref(prev, idx), reply: ref(m, idx) };
       }
@@ -672,6 +690,16 @@ export function analyze(chat, { today = new Date() } = {}) {
     calls: callStats,
     advanced: { sentiment, topics, languages },
     throwback,
+  };
+  const rel = tension.finish();
+  const globalTokens = {};
+  for (const c of rel.candidates) for (const [t] of c.tokens) globalTokens[t] ??= sumOf(wordMap.get(t) || [0]);
+  result.relationship = {
+    ...rel,
+    globalTokens,
+    totalTokens: sumOf(tokensTotals),
+    topicTotals: topicCounts.map(sumOf),
+    textTotal: sumOf(textMsgs),
   };
   result.personalities = personalities(result);
   return result;

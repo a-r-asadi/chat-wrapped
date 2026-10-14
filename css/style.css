@@ -368,6 +368,32 @@ ul.plain li { margin: 4px 0; }
 .s-actions .btn { background: #fff; color: #111; border: none; }
 .s-actions .btn.ghost { background: rgba(255, 255, 255, 0.18); color: #fff; }
 
+/* ---------- fights & what changed ---------- */
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.muted.small { font-size: 13px; margin: 6px 0 0; }
+.rel-controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
+.rel-controls label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.rel-controls select, .rel-controls input { font: inherit; font-size: 15px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; }
+.rel-note { margin: -4px 0 0; font-size: 13px; color: var(--muted); }
+.fights { display: flex; flex-direction: column; gap: 8px; }
+.fight { background: var(--surface-2); border-radius: 14px; padding: 10px 14px; }
+.fight > summary { cursor: pointer; display: grid; grid-template-columns: auto 1fr 60px; gap: 10px; align-items: center; font-size: 14px; list-style: none; }
+.fight > summary::-webkit-details-marker { display: none; }
+.fight-when { font-weight: 700; }
+.fight-when::before { content: "▸ "; color: var(--muted); }
+.fight[open] .fight-when::before { content: "▾ "; }
+.fight-meta { color: var(--muted); }
+.fight-heat { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--text-2) calc(var(--heat) * 100%), var(--border) 0); }
+.fight .thread { margin: 12px 0 8px; }
+.fight .bubble { background: var(--surface); }
+.fight-foot { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 13px; color: var(--text-2); }
+.fight-foot .btn { margin-inline-start: auto; }
+.all-fights > summary { cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+.versus.changes th small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
+.versus.changes td.lead-change { font-weight: 800; }
+.turns { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; }
+.turns span { display: block; color: var(--text-2); font-size: 14px; margin-top: 2px; }
+
 /* ---------- slide snapshots (rendered into the JPG sheet) ---------- */
 .story.snapshot { position: relative; inset: auto; display: block; width: 540px; height: 960px; background: none; font: 16px/1.5 var(--font); color: #fff; }
 .story.snapshot .story-frame { width: 540px; height: 960px; border-radius: 0; transition: none; }
@@ -406,3 +432,4 @@ ul.plain li { margin: 4px 0; }
   details.longest .bubble-text { max-height: none; }
   .footnote { margin-top: 16px; }
 }
+.chart .mark { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: 0.55; }

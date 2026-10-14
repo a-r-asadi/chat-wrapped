@@ -59,7 +59,8 @@ const scaleKey = (lo = "Less", hi = "More") =>
   `<div class="scale-key"><span>${lo}</span>${[0, 1, 2, 3, 4, 5, 6].map((q) => `<i style="background:var(--q${q})"></i>`).join("")}<span>${hi}</span></div>`;
 
 // Stacked columns, one segment per person.
-export function stackedBars(columns, people, { height = 240, labelEvery, width = 800 } = {}) {
+export function stackedBars(columns, people, { height = 240, labelEvery, width = 800, colors } = {}) {
+  const col = (s) => colors?.[s] ?? color(s);
   const W = width, H = height, left = 44, right = 8, top = 10, bottom = 26;
   const pw = W - left - right, ph = H - top - bottom;
   const n = columns.length;
@@ -82,8 +83,8 @@ export function stackedBars(columns, people, { height = 240, labelEvery, width =
       const gapPx = s === stackTop ? 0 : Math.min(2, h / 3);
       y -= h;
       bars += s === stackTop
-        ? `<path d="${roundedTop(x, y, bw, h, 3)}" fill="${color(s)}"/>`
-        : `<rect x="${x}" y="${y + gapPx}" width="${bw}" height="${Math.max(0, h - gapPx)}" fill="${color(s)}"/>`;
+        ? `<path d="${roundedTop(x, y, bw, h, 3)}" fill="${col(s)}"/>`
+        : `<rect x="${x}" y="${y + gapPx}" width="${bw}" height="${Math.max(0, h - gapPx)}" fill="${col(s)}"/>`;
     });
     if (i % every === 0) labels += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle" class="axis">${esc(c.label)}</text>`;
     const tipText = [c.tip || c.label, ...c.values.map((v, s) => `${people[s].name}: ${num(v)}`), people.length > 1 ? `Total: ${num(sum(c.values))}` : ""].filter(Boolean).join("\n");
@@ -93,7 +94,8 @@ export function stackedBars(columns, people, { height = 240, labelEvery, width =
 }
 
 // Columns grouped by category, one bar per person.
-export function groupedBars(categories, series, people, { height = 220, fmt = num, width = 800 } = {}) {
+export function groupedBars(categories, series, people, { height = 220, fmt = num, width = 800, colors } = {}) {
+  const col = (s) => colors?.[s] ?? color(s);
   const W = width, H = height, left = 44, right = 8, top = 10, bottom = 26;
   const pw = W - left - right, ph = H - top - bottom;
   const max = niceMax(Math.max(1, ...series.flat()));
@@ -111,7 +113,7 @@ export function groupedBars(categories, series, people, { height = 220, fmt = nu
       const v = vals[ci];
       if (!v) return;
       const h = (v / max) * ph;
-      bars += `<path d="${roundedTop(gx + s * bw + 1, top + ph - h, bw - 2, h, 3)}" fill="${color(s)}"/>`;
+      bars += `<path d="${roundedTop(gx + s * bw + 1, top + ph - h, bw - 2, h, 3)}" fill="${col(s)}"/>`;
     });
     labels += `<text x="${left + ci * slot + slot / 2}" y="${H - 6}" text-anchor="middle" class="axis">${esc(cat)}</text>`;
     hits += `<rect x="${left + ci * slot}" y="${top}" width="${slot}" height="${ph}" class="hit" ${tip([cat, ...series.map((v, s) => `${people[s].name}: ${fmt(v[ci])}`)].join("\n"))}/>`;
@@ -120,7 +122,8 @@ export function groupedBars(categories, series, people, { height = 220, fmt = nu
 }
 
 // Lines, one per person; null values break the line.
-export function lineChart(xLabels, series, people, { height = 220, yMin = 0, yMax, fmt = num, labelEvery, zero = false, tipLabels, width = 800 } = {}) {
+export function lineChart(xLabels, series, people, { height = 220, yMin = 0, yMax, fmt = num, labelEvery, zero = false, tipLabels, width = 800, colors, marks = [] } = {}) {
+  const col = (s) => colors?.[s] ?? color(s);
   const W = width, H = height, left = 44, right = 10, top = 12, bottom = 26;
   const pw = W - left - right, ph = H - top - bottom;
   const n = xLabels.length;
@@ -133,6 +136,9 @@ export function lineChart(xLabels, series, people, { height = 220, yMin = 0, yMa
     const v = yMin + (g / 4) * (hi - yMin);
     grid += `<line x1="${left}" x2="${W - right}" y1="${y(v)}" y2="${y(v)}" class="grid${(zero ? Math.abs(v) < 1e-9 : g === 0) ? " base" : ""}"/><text x="${left - 6}" y="${y(v) + 4}" text-anchor="end" class="axis">${fmt === num ? compact(v) : fmt(v)}</text>`;
   }
+  for (const i of marks) {
+    lines += `<line x1="${x(i)}" x2="${x(i)}" y1="${top}" y2="${top + ph}" class="mark"/>`;
+  }
   series.forEach((vals, s) => {
     let d = "", pen = false;
     vals.forEach((v, i) => {
@@ -140,14 +146,14 @@ export function lineChart(xLabels, series, people, { height = 220, yMin = 0, yMa
       d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
       pen = true;
     });
-    lines += `<path d="${d}" fill="none" stroke="${color(s)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    lines += `<path d="${d}" fill="none" stroke="${col(s)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
   });
   const every = labelEvery || Math.max(1, Math.ceil(n / 8));
   xLabels.forEach((l, i) => {
     if (i % every === 0) labels += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" class="axis">${esc(l)}</text>`;
     const w = n === 1 ? pw : pw / (n - 1);
     hits += `<g class="hover-col"><line x1="${x(i)}" x2="${x(i)}" y1="${top}" y2="${top + ph}" class="crosshair"/>${series
-      .map((vals, s) => (vals[i] == null ? "" : `<circle cx="${x(i)}" cy="${y(vals[i])}" r="4" fill="${color(s)}" class="dot"/>`))
+      .map((vals, s) => (vals[i] == null ? "" : `<circle cx="${x(i)}" cy="${y(vals[i])}" r="4" fill="${col(s)}" class="dot"/>`))
       .join("")}<rect x="${x(i) - w / 2}" y="${top}" width="${w}" height="${ph}" class="hit" ${tip(
       [(tipLabels || xLabels)[i], ...series.map((vals, s) => `${people[s].name}: ${vals[i] == null ? "–" : fmt(vals[i])}`)].join("\n"),
     )}/></g>`;

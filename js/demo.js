@@ -41,6 +41,16 @@ const POOL = {
   links: ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://open.spotify.com/track/abc", "https://www.instagram.com/p/xyz", "https://maps.google.com/?q=cafe"],
 };
 
+// Scripted arguments: [speaker (0 = you, 1 = them), text]. Each scene ends in a make-up the next day.
+const FIGHTS = [
+  [[0, "you said you'd call last night"], [1, "I was tired"], [0, "you always say that"], [1, "seriously?!"], [1, "I can't do this right now"], [0, "whatever"], [1, "ok."], [0, "you never listen to me"], [1, "I'm done talking about this"]],
+  [[1, "why didn't you tell me you were going out??"], [0, "it wasn't a big deal"], [1, "it is a big deal to me"], [0, "I don't get why you're so upset"], [1, "forget it"], [0, "fine."], [1, "ناراحتم کردی واقعا"]],
+  [[0, "چرا جواب نمیدی؟؟"], [1, "سرم شلوغ بود"], [0, "همیشه همین رو میگی"], [1, "ولم کن الان حوصله ندارم"], [0, "باشه."], [1, "هرچی"]],
+  [[1, "you forgot again"], [0, "I'm sorry, work was crazy"], [1, "that's not fair to me"], [0, "I know, I'm sorry"], [1, "I'm just disappointed"], [0, "k."]],
+  [[0, "WHY would you say that to my friends"], [1, "it was a joke"], [0, "it wasn't funny"], [1, "you're overreacting"], [0, "unbelievable"], [1, "whatever"], [0, "don't talk to me"]],
+];
+const MAKE_UPS = [[0, "hey… sorry about yesterday"], [1, "me too, I'm sorry ❤️"], [1, "ببخشید دیروز تند رفتم"], [0, "منم ببخشید ❤️"], [1, "can we talk? I'm sorry"], [0, "sorry 🥺 love you"]];
+
 const pad = (n) => String(n).padStart(2, "0");
 const localStamp = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
@@ -65,7 +75,8 @@ export function makeDemoExport({ seed = 7, days = 820 } = {}) {
     if (d >= silenceStart && d < silenceStart + 9) continue;
     const era = 0.6 + 0.9 * Math.exp(-(((d - days * 0.62) / (days * 0.12)) ** 2)) + (d < 40 ? -0.3 : 0);
     if (rnd() > 0.55 + 0.35 * Math.min(1, era)) continue;
-    const sessionsToday = 1 + Math.floor(rnd() * 3 * era);
+    const fightDay = rnd() < (d > days * 0.82 ? 0.09 : 0.025);
+    const sessionsToday = fightDay ? 0 : 1 + Math.floor(rnd() * 3 * era);
     for (let s = 0; s < sessionsToday; s++) {
       const hourWeights = [3, 2, 1.5, 0.6, 0.2, 0.1, 0.3, 1, 1.6, 1.8, 2, 2.2, 2.6, 2.4, 2, 2, 2.3, 2.6, 3, 3.4, 3.8, 4.4, 4.6, 4];
       let r = rnd() * hourWeights.reduce((a, b) => a + b, 0), hour = 0;
@@ -102,9 +113,26 @@ export function makeDemoExport({ seed = 7, days = 820 } = {}) {
         }
         who = 1 - who;
         const q = people[who];
-        const delay = Math.exp(Math.log(q.replyMin * 60) + rnd() * 2.4 - 0.4 + (rnd() < 0.05 ? 3.5 : 0));
+        const slowdown = who === 1 && d > days * 0.82 ? 3.5 : 1; // replies drift slower near the end
+        const delay = slowdown * Math.exp(Math.log(q.replyMin * 60) + rnd() * 2.4 - 0.4 + (rnd() < 0.05 ? 3.5 : 0));
         t = new Date(t.getTime() + delay * 1000);
       }
+    }
+    if (fightDay) {
+      const scene = pick(FIGHTS);
+      let t = new Date(start.getTime() + d * 864e5 + (21 + rnd() * 2) * 36e5);
+      const say = (who, text, at) => {
+        const p = people[who];
+        push({ type: "message", date: localStamp(at), date_unixtime: String(Math.floor(at / 1000)), from: p.name, from_id: p.id, text, text_entities: [{ type: "plain", text }] });
+      };
+      for (const [who, text] of scene) {
+        say(who, text, t);
+        t = new Date(t.getTime() + (20 + rnd() * 150) * 1000);
+      }
+      const m = 2 * Math.floor(rnd() * 3);
+      t = new Date(t.getTime() + (10 + rnd() * 20) * 36e5);
+      say(MAKE_UPS[m][0], MAKE_UPS[m][1], t);
+      say(MAKE_UPS[m + 1][0], MAKE_UPS[m + 1][1], new Date(t.getTime() + 120e3));
     }
     if (rnd() < 0.18 * era) {
       const caller = people[rnd() < 0.55 ? 0 : 1];

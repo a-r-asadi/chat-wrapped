@@ -1,57 +1,16 @@
 // Renders the full stats dashboard from an analysis result.
-import { esc, num, compact, pct, dec, duration, dayLabel, monthLabel, tsLabel, hourLabel, hourRange, WEEKDAYS, WEEKDAYS_LONG, messageText, firstName } from "./format.js";
+import { esc, num, compact, pct, dec, duration, dayLabel, monthLabel, hourLabel, hourRange, WEEKDAYS, WEEKDAYS_LONG, firstName } from "./format.js";
 import { color, legend, splitBar, heatmap, stackedBars, groupedBars, lineChart, calendar, hbars, wordCloud } from "./charts.js";
+import { tiles, card, stat, who, thread, versus, chips } from "./ui.js";
+import { renderRelationship } from "./relationship.js";
 
 const sum = (a) => a.reduce((x, y) => x + y, 0);
 // Chart viewBox widths: narrower boxes keep axis text readable on phones and in half-width cards.
 let FULL = 800, HALF = 460;
 
-const tiles = (...items) => {
-  const list = items.filter(Boolean);
-  return `<div class="stats n${list.length}">${list.join("")}</div>`;
-};
-
-const card = (title, body, { sub = "", cls = "" } = {}) =>
-  `<article class="card ${cls}"><header><h3>${title}</h3>${sub ? `<p class="sub">${sub}</p>` : ""}</header>${body}</article>`;
-
-const stat = (label, value, sub = "") =>
-  `<div class="stat"><div class="stat-label">${label}</div><div class="stat-value">${value}</div>${sub ? `<div class="stat-sub">${sub}</div>` : ""}</div>`;
-
-const who = (people, s) => `<span class="who"><i class="swatch" style="background:${color(s)}"></i>${esc(people[s]?.name)}</span>`;
-
-function bubble(m, people, { showName = true } = {}) {
-  if (!m) return "";
-  const p = people[m.from];
-  const side = p?.isYou ? "right" : "left";
-  return `<div class="bubble-row ${side}"><div class="bubble" style="--who:${color(m.from)}">
-    ${showName ? `<div class="bubble-name">${esc(p?.name)}</div>` : ""}
-    <div class="bubble-text" dir="auto">${esc(messageText(m))}</div>
-    <div class="bubble-time">${tsLabel(m.t)}</div></div></div>`;
-}
-const thread = (msgs, people) => `<div class="thread">${msgs.filter(Boolean).map((m) => bubble(m, people)).join("")}</div>`;
-
-// Per-person comparison table; the leader in each row gets a badge.
-function versus(rows, people) {
-  return `<div class="table-wrap"><table class="versus"><thead><tr><th></th>${people
-    .map((p, s) => `<th>${who(people, s)}</th>`)
-    .join("")}</tr></thead><tbody>${rows
-    .map(([label, values, fmt = num, best = "max"]) => {
-      const valid = values.filter((v) => v != null && !Number.isNaN(v));
-      const target = valid.length > 1 && best !== "none" ? (best === "min" ? Math.min(...valid) : Math.max(...valid)) : null;
-      return `<tr><th scope="row">${label}</th>${values
-        .map((v) => `<td class="${target != null && v === target && valid.some((x) => x !== target) ? "lead" : ""}">${v == null ? "–" : fmt(v)}</td>`)
-        .join("")}</tr>`;
-    })
-    .join("")}</tbody></table></div>`;
-}
-
-function chips(items) {
-  return `<div class="chips">${items.map((i) => `<span class="chip" dir="auto" ${i.tip ? `data-tip="${esc(i.tip)}"` : ""}>${i.html}</span>`).join("")}</div>`;
-}
-
 // ---------------------------------------------------------------------------
 
-export function renderDashboard(r, { narrow = false } = {}) {
+export function renderDashboard(r, { narrow = false, rel } = {}) {
   FULL = narrow ? 420 : 800;
   HALF = narrow ? 420 : 460;
   const people = r.people;
@@ -65,6 +24,7 @@ export function renderDashboard(r, { narrow = false } = {}) {
     ["media", "Media & calls", media(r)],
     ["deep", "Deep dive", deep(r)],
     ["wrapped", "Wrapped", wrapped(r)],
+    ["relationship", "Fights & changes", renderRelationship(r, rel, { narrow })],
   ];
   return `
     <nav class="section-nav" aria-label="Sections">${sections.map(([id, label]) => `<a href="#${id}">${label}</a>`).join("")}</nav>

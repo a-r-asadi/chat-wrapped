@@ -63,3 +63,19 @@ test("demo export runs end to end", () => {
   JSON.stringify(r); // must be serializable
   console.log(`demo: ${r.totals.messages} messages analyzed in ${Date.now() - t0} ms`);
 });
+
+test("fight detection flags arguments but not excitement or make-ups", () => {
+  const lines = (start, rows) => rows.map(([from, text], i) => msg(100 + i + start, `2024-02-0${start}T21:${String(10 + i).padStart(2, "0")}:00`, from, text));
+  const chat = {
+    name: "Sara", type: "personal_chat", id: 2,
+    messages: [
+      ...lines(1, [["Ali", "you said you'd call"], ["Sara", "I was tired"], ["Ali", "you always say that"], ["Sara", "seriously?!"], ["Ali", "whatever"], ["Sara", "ok."]]),
+      ...lines(3, [["Ali", "we got the tickets!!"], ["Sara", "yesss!!"], ["Ali", "can't wait!!!"], ["Sara", "omg!!"]]),
+      ...lines(5, [["Ali", "sorry about yesterday"], ["Sara", "me too, I'm sorry ❤️"], ["Ali", "love you"]]),
+    ],
+  };
+  const r = analyze(normalizeChat(listChats(chat)[0]), { today: new Date("2024-03-01") });
+  const days = r.relationship.candidates.map((c) => c.day);
+  assert.deepEqual(days, ["2024-02-01"]);
+  assert.ok(r.relationship.weeks.length >= 1);
+});
