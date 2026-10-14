@@ -1,6 +1,7 @@
 import { renderDashboard } from "./dashboard.js";
 import { playStory } from "./story.js";
 import { downloadCard } from "./card.js";
+import { downloadStorySheet } from "./snapshot.js";
 import { esc, num, dayLabel } from "./format.js";
 
 const $ = (s) => document.querySelector(s);
@@ -102,7 +103,37 @@ function showResult(r) {
 
 function onAction(action) {
   if (action === "card") downloadCard(result);
+  else if (action === "jpg") busy("jpg", "Rendering…", () => downloadStorySheet(result));
+  else if (action === "pdf") savePdf();
   else if (action === "story") playStory(result, { onAction });
+}
+
+// Disables every button for `action` while `fn` runs.
+async function busy(action, label, fn) {
+  const buttons = [...document.querySelectorAll(`[data-action="${action}"]`)];
+  if (buttons.some((b) => b.disabled)) return;
+  const labels = buttons.map((b) => b.textContent);
+  buttons.forEach((b) => ((b.disabled = true), (b.textContent = label)));
+  try {
+    await fn();
+  } catch (e) {
+    alert(e.message || "Something went wrong while creating the image.");
+  } finally {
+    buttons.forEach((b, i) => ((b.disabled = false), (b.textContent = labels[i])));
+  }
+}
+
+// Opens the browser's print dialog, where "Save as PDF" downloads the page (see @media print).
+function savePdf() {
+  const closed = [...document.querySelectorAll("#dashboard details:not([open])")];
+  closed.forEach((d) => (d.open = true));
+  const title = document.title;
+  document.title = `Chat Wrapped – ${$("#result-title").textContent}`;
+  addEventListener("afterprint", () => {
+    closed.forEach((d) => (d.open = false));
+    document.title = title;
+  }, { once: true });
+  print();
 }
 
 // ---------- events ----------

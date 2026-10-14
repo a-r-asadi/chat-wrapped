@@ -367,3 +367,42 @@ ul.plain li { margin: 4px 0; }
 .s-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .s-actions .btn { background: #fff; color: #111; border: none; }
 .s-actions .btn.ghost { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
+/* ---------- slide snapshots (rendered into the JPG sheet) ---------- */
+.story.snapshot { position: relative; inset: auto; display: block; width: 540px; height: 960px; background: none; font: 16px/1.5 var(--font); color: #fff; }
+.story.snapshot .story-frame { width: 540px; height: 960px; border-radius: 0; transition: none; }
+.story.snapshot .s-line, .story.snapshot .s-emojis span { animation: none; }
+.story.snapshot .s-actions, .story.snapshot .s-hint { display: none; }
+
+/* ---------- print / Save as PDF ---------- */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  :root:root:root {
+    color-scheme: light;
+    --bg: #ffffff; --surface: #ffffff; --surface-2: #f2f1ed; --text: #0b0b0b; --text-2: #52514e; --muted: #74726c;
+    --border: rgba(11, 11, 11, 0.12); --grid: rgba(11, 11, 11, 0.08); --shadow: none;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --q0: #e9e8e3; --q1: #cde2fb; --q2: #9ec5f4; --q3: #6da7ec; --q4: #3987e5; --q5: #256abf; --q6: #104281;
+  }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html { scroll-padding-top: 0; }
+  body { background: #fff; font-size: 13px; display: block; }
+  .topbar, .section-nav, .results-head .row, .footer, .tip, .story, .no-print, details summary::marker { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .results-head { padding: 0 0 6px; }
+  .section { padding-top: 14px; }
+  .section > h2 { font-size: 22px; break-after: avoid; }
+  .grid, .grid.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .grid > .stats.n6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid > .stats.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .grid > .stats.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .counters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { padding: 14px 16px; border-color: rgba(0, 0, 0, 0.14); break-inside: avoid; }
+  .card.span-2 { break-inside: auto; }
+  .stat, .persona, .counter, .bubble-row, .hbar-row, tr, .cal-year, .sig, .emoji-person, .split-group { break-inside: avoid; }
+  .stat-value { font-size: 20px; }
+  .scroll-x, .table-wrap { overflow: visible; }
+  .chart.heat, .chart.cal { min-width: 0 !important; }
+  details.longest .bubble-text { max-height: none; }
+  .footnote { margin-top: 16px; }
+}

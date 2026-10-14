@@ -361,6 +361,11 @@ function wrapped(r) {
   return [
     card("Your chat personalities", cards, { cls: "span-2" }),
     throwback,
-    card("Share it", `<p>Get a story-sized image of your highlights to share.</p><div class="row"><button class="btn primary" data-action="card">Download share card</button><button class="btn" data-action="story">▶ Play Wrapped</button></div>`),
+    card(
+      "Share it",
+      `<p>Grab a story-sized image of your highlights, every Wrapped slide side by side in one JPG, or this whole page as a PDF.</p>
+      <div class="row"><button class="btn primary" data-action="card">Download share card</button><button class="btn" data-action="jpg">All slides as JPG</button><button class="btn" data-action="pdf">Save page as PDF</button><button class="btn ghost" data-action="story">▶ Play Wrapped</button></div>`,
+      { cls: "no-print" },
+    ),
   ].join("");
 }

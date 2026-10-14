@@ -26,6 +26,7 @@ No export handy? Click **Try it with a demo chat**.
 | **Media & calls** | Photos, videos, voice/video messages (+ minutes), stickers, GIFs, files, links, polls, locations, forwards, edits, replies, reactions given/received; favorite stickers, reactions and sites; calls, total talk time, longest call, unanswered calls |
 | **Deep dive** | Mood over time (lexicon-based sentiment), happiest & toughest day, topics (food, work, plans, feelings, travel…), language mix (English / Persian / Finglish / …) |
 | **Wrapped** | Personality awards per person (The Initiator, Speed Replier, Night Owl, Essayist, Emoji Maniac…), an on-this-day throwback, an auto-playing story, and a 1080×1920 share image |
+| **Export** | Share card (PNG), every Wrapped slide side by side in one JPG, and the whole dashboard as a PDF (print layout → “Save as PDF”) |
 
 Word lists cover **English, Persian and Finglish**. Telegram exports don't include deleted messages, so those can't be counted.
 
@@ -62,6 +63,7 @@ js/dashboard.js     dashboard sections
 js/charts.js        SVG charts (heatmap, bars, lines, calendar, word cloud)
 js/story.js         Wrapped story slides
 js/card.js          share image (canvas)
+js/snapshot.js      all story slides → one JPG
 js/demo.js          fake chat generator
 test/               node:test suite
 ```

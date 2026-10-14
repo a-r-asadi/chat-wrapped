@@ -10,7 +10,7 @@ const line = (html, d = 0) => `<div class="s-line" style="--d:${d}">${html}</div
 const bubble = (m, people) =>
   m ? `<div class="s-bubble ${people[m.from]?.isYou ? "right" : ""}" style="--who:${color(m.from)}"><small>${esc(people[m.from]?.name)}</small><span dir="auto">${esc(messageText(m).slice(0, 220))}</span></div>` : "";
 
-function slides(r) {
+export function slides(r) {
   const P = r.people;
   const t = r.totals;
   const two = P.length === 2;
@@ -163,7 +163,7 @@ function slides(r) {
     ${line(`<div class="s-kicker">That's a wrap</div>`)}
     ${line(`<h1 class="s-title">${compact(t.messages)} messages,<br>${num(t.activeDays)} days.</h1>`, 1)}
     ${line(`<p>Here's to many more 💬</p>`, 2)}
-    ${line(`<div class="s-actions"><button class="btn primary" data-action="card">Download share card</button><button class="btn ghost" data-action="close">See all stats</button><button class="btn ghost" data-action="replay">Replay</button></div>`, 3)}`);
+    ${line(`<div class="s-actions"><button class="btn primary" data-action="card">Download share card</button><button class="btn ghost" data-action="jpg">Download all slides (JPG)</button><button class="btn ghost" data-action="close">See all stats</button><button class="btn ghost" data-action="replay">Replay</button></div>`, 3)}`);
   return out;
 }
 
