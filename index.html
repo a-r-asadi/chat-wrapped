@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat Wrapped</title>
+  <meta name="description" content="Upload your Telegram chat export and get Spotify-Wrapped-style stats. Everything runs in your browser.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Chat Wrapped home"><span class="brand-mark">💬</span> Chat Wrapped</a>
+    <button id="theme" class="icon-btn" aria-label="Toggle theme">🌙</button>
+  </header>
+
+  <main>
+    <section id="landing">
+      <div class="hero">
+        <p class="eyebrow">For Telegram</p>
+        <h1>Your chat, <span class="grad">wrapped.</span></h1>
+        <p class="lede">Drop in a Telegram chat export and see who texts first, who replies fastest, your golden era, your top emojis, the first “I love you” and much more.</p>
+
+        <label id="drop" class="drop" for="file-input">
+          <input id="file-input" type="file" accept=".json,application/json" hidden>
+          <span class="drop-icon">📂</span>
+          <span class="drop-title">Drop <code>result.json</code> here</span>
+          <span class="drop-sub">or click to choose a file</span>
+        </label>
+        <p id="error" class="error" role="alert" hidden></p>
+        <div class="row center">
+          <button id="demo" class="btn">✨ Try it with a demo chat</button>
+        </div>
+        <p class="privacy">🔒 Your chat never leaves your device. All the number-crunching happens in your browser, with no uploads, no servers and no tracking.</p>
+      </div>
+
+      <div class="howto">
+        <h2>How to export a chat</h2>
+        <ol>
+          <li>Open <b>Telegram Desktop</b> (the phone apps can't export).</li>
+          <li>Open the chat, click <b>⋮</b> in the top-right, then <b>Export chat history</b>.</li>
+          <li>Untick photos, videos and files (they aren't needed, and the export is faster without them).</li>
+          <li>Set <b>Format</b> to <b>Machine-readable JSON</b> and click <b>Export</b>.</li>
+          <li>Drop the <code>result.json</code> file from the export folder above.</li>
+        </ol>
+        <p class="muted">A full-account export (Settings → Advanced → Export Telegram data, JSON) works too. You'll be asked which chat to look at.</p>
+      </div>
+
+      <div class="features">
+        <div><span>⏰</span><b>Time</b><small>Heatmaps, streaks, silences, busiest day, golden era</small></div>
+        <div><span>💬</span><b>Dynamics</b><small>Who starts, who ends, reply speed, double texts, left on read</small></div>
+        <div><span>😂</span><b>Content</b><small>Top words &amp; emojis, signature phrases, laughs, “I love you” counter</small></div>
+        <div><span>🧠</span><b>Deep dive</b><small>Mood over time, topics and languages (English, Persian, Finglish)</small></div>
+        <div><span>🏆</span><b>Wrapped</b><small>Personality cards, a throwback, and a shareable image</small></div>
+      </div>
+    </section>
+
+    <section id="loading" hidden>
+      <div class="loader" aria-hidden="true"><span></span><span></span><span></span></div>
+      <p id="loading-text" aria-live="polite">Getting started…</p>
+    </section>
+
+    <section id="picker" hidden>
+      <h2>Which chat?</h2>
+      <p class="muted">This is a full-account export. Pick a conversation.</p>
+      <input id="chat-filter" class="search" type="search" placeholder="Search chats…" aria-label="Search chats">
+      <ul id="chat-list" class="chat-list"></ul>
+      <button id="picker-back" class="btn ghost">← Back</button>
+    </section>
+
+    <section id="results" hidden>
+      <div class="results-head">
+        <div>
+          <h1 id="result-title" dir="auto"></h1>
+          <p id="result-sub" class="muted"></p>
+        </div>
+        <div class="row">
+          <button class="btn primary" data-action="story">▶ Play Wrapped</button>
+          <button class="btn" data-action="card">Share card</button>
+          <button class="btn ghost" data-action="reset">New chat</button>
+        </div>
+      </div>
+      <div id="dashboard"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Runs entirely in your browser.</span>
+    <a href="https://github.com/a-r-asadi/chat-wrapped">Source on GitHub</a>
+  </footer>
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+</body>
+</html>

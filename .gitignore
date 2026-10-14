@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+result.json
+*.json.bak
+ChatExport_*/
+DataExport_*/
